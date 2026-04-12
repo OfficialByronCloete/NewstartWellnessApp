@@ -4,6 +4,12 @@
     <Project Path="../NewStartWellnessApp.Aspire/NewStartWellnessApp.Aspire.ServiceDefaults/NewStartWellnessApp.Aspire.ServiceDefaults.csproj" />
     <Project Path="NewStartWellnessApp.WebAPI.csproj" />
   </Folder>
-  <Folder Name="/Domain/" />
-  <Folder Name="/Infrastructure/" />
+  <Folder Name="/Domain/">
+    <Project Path="../NewStartWellnessApp.Common/NewStartWellnessApp.Common.csproj" Id="f9c58e94-5b29-40e3-8d91-f000759677ad" />
+    <Project Path="../NewStartWellnessApp.Core/NewStartWellnessApp.Core.csproj" Id="5bf72d26-c9f5-4d21-985c-b6473a24e1f0" />
+    <Project Path="../NewStartWellnessApp.Services/NewStartWellnessApp.Services.csproj" Id="858e374d-6093-4767-8add-596d45efa5bf" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="../NewStartWellnessApp.DataAccess/NewStartWellnessApp.DataAccess.csproj" Id="fef84470-ba00-4005-8d57-728d5a47fdb2" />
+  </Folder>
 </Solution>
