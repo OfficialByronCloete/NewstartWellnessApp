@@ -1,3 +1,9 @@
 <Solution>
-  <Project Path="NewStartWellnessApp.csproj" />
+  <Folder Name="/Artifacts/">
+    <Project Path="../NewStartWellnessApp.Aspire/NewStartWellnessApp.Aspire.AppHost/NewStartWellnessApp.Aspire.AppHost.csproj" Id="72748b10-23d1-4856-939a-434ead63d6d5" />
+    <Project Path="../NewStartWellnessApp.Aspire/NewStartWellnessApp.Aspire.ServiceDefaults/NewStartWellnessApp.Aspire.ServiceDefaults.csproj" />
+    <Project Path="NewStartWellnessApp.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/Domain/" />
+  <Folder Name="/Infrastructure/" />
 </Solution>
