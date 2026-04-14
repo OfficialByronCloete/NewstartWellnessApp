@@ -7,7 +7,15 @@
 <!-- * * * * * * * to get started with your project! * * * * * * * -->
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 
-<style>
+<nav class="top-nav">
+  <a routerLink="/home">Home</a>
+  <a routerLink="/info">Information</a>
+  <a routerLink="/achievements">Achievements</a>
+  <a routerLink="/leaderboard">Leaderboard</a>
+  <button class="logout-btn" (click)="logout()" [hidden]="!isLoggedIn()">Logout</button>
+</nav>
+
+<!--style>
   :host {
     --bright-blue: oklch(51.01% 0.274 263.83);
     --electric-violet: oklch(53.18% 0.28 296.97);
@@ -328,7 +336,7 @@
       </div>
     </div>
   </div>
-</main>
+</main-->
 
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 <!-- * * * * * * * * * * * The content above * * * * * * * * * * * * -->

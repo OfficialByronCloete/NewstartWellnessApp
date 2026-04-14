@@ -1,0 +1,23 @@
+<div class="accordion">
+  <div class="accordion-item" *ngFor="let g of grouped; let i = index">
+    <details [open]="false">
+      <summary>{{ g.heading }} — <small class="group-points">{{ g.selectedPoints }} / {{ g.maxPoints }} pts</small></summary>
+      <div class="accordion-body">
+        <ul>
+          <li *ngFor="let ch of g.challenges">
+            <ng-container *ngIf="ch.points > 0; else uploadOnly">
+              <label class="checkbox-label">
+                <input type="checkbox" [checked]="getStatus(ch)" (change)="toggle(ch)" />
+                <span>{{ ch.title }} <small class="points">({{ ch.points }} pts)</small></span>
+              </label>
+            </ng-container>
+            <ng-template #uploadOnly>
+              <label>{{ ch.title }} — <a href="https://example.com/upload" target="_blank" rel="noopener">Upload</a></label>
+              <input type="text" [value]="getUpload(ch)" (change)="saveUpload(ch, $event.target.value)" placeholder="Paste uploaded image URL (optional)" />
+            </ng-template>
+          </li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</div>

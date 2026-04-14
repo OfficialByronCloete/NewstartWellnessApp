@@ -1,0 +1,17 @@
+<section class="page home-page">
+  <h1>Welcome</h1>
+
+  <div class="progress-wrap">
+    <ng-container *ngIf="points$ | async as points; else loading">
+      <div class="progress-label">Points: {{ points }} / {{ total }}</div>
+      <div class="progress-track"><div class="progress-fill" [style.width.%]="progress"></div></div>
+    </ng-container>
+    <ng-template #loading>
+      <div class="progress-label">Points: 0 / {{ total }}</div>
+      <div class="progress-track"><div class="progress-fill" [style.width.%]="0"></div></div>
+    </ng-template>
+  </div>
+
+  <nsw-headings></nsw-headings>
+
+</section>

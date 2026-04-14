@@ -1,0 +1,4 @@
+.accordion { max-width:800px; margin-top:1rem; }
+.accordion-item { border-bottom:1px solid #eee; padding:0.5rem 0; }
+.accordion-header { background:none; border:0; font-weight:600; text-align:left; width:100%; padding:0.5rem 0; cursor:pointer; }
+.accordion-body { padding:0.5rem 0 0.5rem 1rem; color:#444; }

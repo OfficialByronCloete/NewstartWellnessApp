@@ -1,0 +1,20 @@
+<section class="page achievements-page">
+  <h1>Achievements</h1>
+  <form (submit)="$event.preventDefault()" class="achievements-form">
+    <div class="achievement-group" *ngFor="let group of grouped">
+      <h2>{{ group.heading }}</h2>
+      <div class="achievement-item" *ngFor="let ch of group.challenges">
+        <div *ngIf="!isSpecial(ch)">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="getStatus(ch)" (change)="toggle(ch)" />
+            <span>{{ ch.title }} <small class="points">({{ ch.points }} pts)</small></span>
+          </label>
+        </div>
+        <div *ngIf="isSpecial(ch)" class="upload-item">
+          <label>{{ ch.title }} — <a href="https://example.com/upload" target="_blank" rel="noopener">Upload image</a></label>
+          <input type="text" [value]="getUpload(ch)" (change)="saveUpload(ch, $event.target.value)" placeholder="Paste uploaded image URL (optional)" />
+        </div>
+      </div>
+    </div>
+  </form>
+</section>
