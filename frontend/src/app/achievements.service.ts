@@ -30,8 +30,8 @@ export class AchievementsService {
   private isBrowser: boolean;
   private storageKey = 'nsw_achievements_status';
   private uploadKeyPrefix = 'nsw_upload_';
-  // selections keyed by challenge id
-  private selections: Record<string, boolean> = {};
+  // selections keyed by challenge id. number = attempts count (0 = none)
+  private selections: Record<string, number> = {};
 
   points$ = new BehaviorSubject<number>(0);
 
@@ -58,27 +58,17 @@ export class AchievementsService {
       }
     }
 
-    // initialize selections
-    CHALLENGES.forEach((c) => (this.selections[c.id] = false));
+    // initialize selections to zero attempts
+    CHALLENGES.forEach((c) => (this.selections[c.id] = 0));
 
     if (loaded && typeof loaded === 'object') {
-      // detect if legacy format (titles as keys) or new format (ids as keys)
-      const keys = Object.keys(loaded);
-      const firstKey = keys[0];
-      if (firstKey) {
-        // if key matches any challenge id, treat as new format
-        if (CHALLENGES.some((c) => c.id === firstKey)) {
-          keys.forEach((k) => {
-            if (typeof loaded[k] === 'boolean') this.selections[k] = !!loaded[k];
-          });
-        } else {
-          // legacy: keys are titles/headings
-          keys.forEach((k) => {
-            const ch = CHALLENGES.find((c) => c.title === k || c.heading === k);
-            if (ch && typeof loaded[k] === 'boolean') this.selections[ch.id] = !!loaded[k];
-          });
-        }
-      }
+      // Accept both legacy boolean values and numeric attempt counts
+      Object.keys(loaded).forEach((k) => {
+        if (!(k in this.selections)) return;
+        const v = loaded[k];
+        if (typeof v === 'number') this.selections[k] = Math.max(0, Math.floor(v));
+        else if (typeof v === 'boolean') this.selections[k] = v ? 1 : 0; // migrate old boolean -> count
+      });
     }
 
     this.updatePoints();
@@ -98,12 +88,8 @@ export class AchievementsService {
   }
 
   getMaxPoints(): number {
-    // Trust options are mutually exclusive; count only the highest-tracking trust option
-    const trust = CHALLENGES.filter((c) => c.heading === 'Trust');
-    const others = CHALLENGES.filter((c) => c.heading !== 'Trust');
-    const sumOthers = others.reduce((acc, c) => acc + c.points, 0);
-    const maxTrust = trust.length ? Math.max(...trust.map((c) => c.points)) : 0;
-    return sumOthers + maxTrust;
+    // With unlimited attempts allowed, max points are the sum of all challenge points (per attempt). Note progress may exceed 100%.
+    return CHALLENGES.reduce((acc, c) => acc + c.points, 0);
   }
 
   // backward-compatible API
@@ -111,69 +97,124 @@ export class AchievementsService {
     return Array.from(new Set(CHALLENGES.map((c) => c.heading)));
   }
 
+  // Returns true if at least one attempt exists (for compatibility)
   getSelected(idOrTitle: string): boolean {
     const byId = CHALLENGES.find((c) => c.id === idOrTitle);
-    if (byId) return !!this.selections[byId.id];
-    const byTitle = CHALLENGES.find((c) => c.title === idOrTitle || c.heading === idOrTitle);
-    return !!(byTitle && this.selections[byTitle.id]);
+    const ch = byId || CHALLENGES.find((c) => c.title === idOrTitle || c.heading === idOrTitle);
+    if (!ch) return false;
+    return !!(this.selections[ch.id] > 0);
   }
 
+  // Returns the number of attempts for a challenge
+  getAttempts(idOrTitle: string): number {
+    const byId = CHALLENGES.find((c) => c.id === idOrTitle);
+    const ch = byId || CHALLENGES.find((c) => c.title === idOrTitle || c.heading === idOrTitle);
+    if (!ch) return 0;
+    return this.selections[ch.id] || 0;
+  }
+
+  // Increment attempts for a challenge. Trust options remain mutually exclusive and single-count.
+  incrementAttempt(idOrTitle: string) {
+    const byId = CHALLENGES.find((c) => c.id === idOrTitle);
+    const ch = byId || CHALLENGES.find((c) => c.title === idOrTitle || c.heading === idOrTitle);
+    if (!ch) return;
+
+    // Increment attempt count for the challenge (Trust no longer mutually exclusive)
+    this.selections[ch.id] = (this.selections[ch.id] || 0) + 1;
+
+    this.save();
+    this.updatePoints();
+  }
+
+  // backward-compatible toggle: toggles between 0 and 1 attempts
   toggleChallenge(idOrTitle: string) {
     const byId = CHALLENGES.find((c) => c.id === idOrTitle);
     const ch = byId || CHALLENGES.find((c) => c.title === idOrTitle || c.heading === idOrTitle);
     if (!ch) return;
 
-    const newValue = !this.selections[ch.id];
+    const newValue = !(this.selections[ch.id] > 0);
 
-    // Enforce mutual exclusivity for Trust options
-    if (ch.id === 'trust-all-present' && newValue) {
-      this.selections['trust-more-50'] = false;
-    } else if (ch.id === 'trust-more-50' && newValue) {
-      this.selections['trust-all-present'] = false;
-    }
-
-    this.selections[ch.id] = newValue;
+    // No mutual exclusivity for Trust; toggle between 0 and 1 attempts
+    this.selections[ch.id] = newValue ? 1 : 0;
     this.save();
     this.updatePoints();
   }
 
-  setSelection(id: string, value: boolean) {
+  // Set selection: accepts boolean (legacy) or numeric attempt count
+  setSelection(id: string, value: boolean | number) {
     if (!(id in this.selections)) return;
 
-    // Enforce mutual exclusivity for Trust options when setting directly
-    if (id === 'trust-all-present' && value) {
-      this.selections['trust-more-50'] = false;
-    } else if (id === 'trust-more-50' && value) {
-      this.selections['trust-all-present'] = false;
-    }
+    let attempts = 0;
+    if (typeof value === 'number') attempts = Math.max(0, Math.floor(value));
+    else attempts = value ? 1 : 0;
 
-    this.selections[id] = !!value;
+    // No mutual exclusivity for Trust; set attempts directly
+    this.selections[id] = attempts;
+
     this.save();
     this.updatePoints();
   }
 
   private updatePoints() {
-    const pts = CHALLENGES.reduce((acc, c) => acc + (this.selections[c.id] ? c.points : 0), 0);
+    // Sum = sum of (attempts * points) for each challenge
+    const pts = CHALLENGES.reduce((acc, c) => acc + ((this.selections[c.id] || 0) * c.points), 0);
     this.points$.next(pts);
   }
 
-  // Upload link helpers - read both id-key and legacy title-key; when saving, write both for compatibility
+  // API persistence helpers
+  // Fetch persisted attempts from API for the given userId. Placeholder URL used.
+  async fetchFromApi(userId: string): Promise<boolean> {
+    if (!userId) return false;
+    const url = `API_URL_PLACEHOLDER/users/${userId}/achievements`;
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) return false;
+      const data = await res.json();
+      // Accept map of challengeId -> number (attempts) or boolean (legacy)
+      Object.keys(this.selections).forEach((id) => {
+        const v = data[id];
+        if (typeof v === 'number') this.selections[id] = Math.max(0, Math.floor(v));
+        else if (typeof v === 'boolean') this.selections[id] = v ? 1 : 0;
+      });
+      this.save();
+      this.updatePoints();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Save current attempts to the API for the given userId. Placeholder URL used.
+  async saveToApi(userId: string): Promise<boolean> {
+    if (!userId) return false;
+    const url = `API_URL_PLACEHOLDER/users/${userId}/achievements`;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.selections),
+        credentials: 'include',
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  // Upload link helpers - use normalized id-key storage only
   setUploadLink(key: string, url: string) {
     const storage = this.getStorage();
     if (!storage) return;
-    const ch = CHALLENGES.find((c) => c.id === key) || CHALLENGES.find((c) => c.title === key || c.heading === key);
+    const ch = CHALLENGES.find((c) => c.id === key);
     const idKey = ch ? ch.id : key;
-    const titleKey = ch ? ch.title : key;
     storage.setItem(this.uploadKeyPrefix + idKey, url || '');
-    storage.setItem(this.uploadKeyPrefix + titleKey, url || '');
   }
 
   getUploadLink(key: string): string {
     const storage = this.getStorage();
     if (!storage) return '';
-    const ch = CHALLENGES.find((c) => c.id === key) || CHALLENGES.find((c) => c.title === key || c.heading === key);
+    const ch = CHALLENGES.find((c) => c.id === key);
     const idKey = ch ? ch.id : key;
-    const titleKey = ch ? ch.title : key;
-    return storage.getItem(this.uploadKeyPrefix + idKey) || storage.getItem(this.uploadKeyPrefix + titleKey) || '';
+    return storage.getItem(this.uploadKeyPrefix + idKey) || '';
   }
 }

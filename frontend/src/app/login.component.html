@@ -1,15 +1,25 @@
-<section class="page login-page">
-  <h1>Login</h1>
-  <form class="login-form" (submit)="onSubmit($event)">
-    <label>
-      Email
-      <input type="email" placeholder="you@example.com" />
-    </label>
-    <label>
-      Password
-      <input type="password" placeholder="••••••••" />
-    </label>
-    <button type="submit">Sign in (placeholder)</button>
-  </form>
-  <p class="note">This is a local placeholder login. No backend/auth is used.</p>
+<section class="page login-page flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+  <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+    <h1>Login</h1>
+    <form class="login-form space-y-6 mt-2" (submit)="onSubmit($event)">
+      <div class="">
+        <div class="">
+          <div class="">
+            <label class="block text-sm/6 font-medium" for="email">Email</label>
+            <div class="mt-2">
+              <input id="email" type="email" placeholder="you@example.com" class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+            </div>
+          </div>
+          <div class="">
+            <label class="block text-sm/6 font-medium" for="password">Password</label>
+            <div class="mt-2">
+              <input id="password" type="password" placeholder="••••••••" class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="flex mt-2 w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Sign in (placeholder)</button>
+      </div>
+    </form>
+    <p class="note mt-2">This is a local placeholder login. No backend/auth is used.</p>
+  </div>
 </section>
