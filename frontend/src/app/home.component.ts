@@ -1,5 +1,6 @@
-import { Component, OnDestroy } from '@angular/core';
-import { HeadingsComponent } from './headings.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HeadingsDisplayComponent } from './headings-display.component';
+import { NavComponent } from './nav.component';
 import { AchievementsService, Challenge } from './achievements.service';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -7,17 +8,18 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'nsw-home',
   standalone: true,
-  imports: [HeadingsComponent, CommonModule],
+  imports: [HeadingsDisplayComponent, CommonModule, NavComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy {
   points$?: any;
   total = 0;
   progress = 0;
   challenges: Challenge[] = [];
   grouped: { heading: string; challenges: Challenge[]; selectedPoints: number; maxPoints: number }[] = [];
   private pointsSub?: Subscription;
+  userId = 'USER_ID_PLACEHOLDER';
 
   constructor(private achievements: AchievementsService) {
     this.points$ = this.achievements.points$;
@@ -34,11 +36,15 @@ export class HomeComponent implements OnDestroy {
       return {
         heading: h,
         challenges: chs,
-        selectedPoints: chs.reduce((acc, c) => acc + (this.achievements.getSelected(c.id) ? c.points : 0), 0),
+        selectedPoints: chs.reduce((acc, c) => acc + (this.achievements.getAttempts(c.id) * c.points), 0),
         maxPoints,
       };
     });
+  }
 
+  ngOnInit(): void {
+    // Load persisted state from API when returning to app (placeholder)
+    void this.achievements.fetchFromApi(this.userId);
     this.pointsSub = this.points$?.subscribe((pts: number) => {
       this.progress = ((pts || 0) / (this.total || 1)) * 100;
       this.updateGroupPoints();
@@ -47,7 +53,7 @@ export class HomeComponent implements OnDestroy {
 
   private updateGroupPoints() {
     this.grouped.forEach((g) => {
-      g.selectedPoints = g.challenges.reduce((acc, c) => acc + (this.achievements.getSelected(c.id) ? c.points : 0), 0);
+      g.selectedPoints = g.challenges.reduce((acc, c) => acc + (this.achievements.getAttempts(c.id) * c.points), 0);
     });
   }
 

@@ -6,7 +6,8 @@ import { AuthService } from './auth.service';
   selector: 'nsw-login',
   standalone: true,
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
+  host: {'loaded': 'true'}
 })
 export class LoginComponent {
   constructor(private auth: AuthService, private router: Router) {}

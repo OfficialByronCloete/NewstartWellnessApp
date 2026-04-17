@@ -1,0 +1,22 @@
+<div class="headings-display">
+  <div *ngFor="let g of grouped; let i = index" (click)="toggleGroup(i)" class="heading-group heading-group-{{i + 1}} mb-4"
+              (keydown.enter)="toggleGroup(i)"
+              (keydown.space)="$event.preventDefault(); toggleGroup(i)"
+              [attr.aria-expanded]="isOpen(i)"
+              [attr.aria-controls]="'panel-' + i">
+    <div class="heading-group-item">
+      <div class="letter-icon">{{ g.heading[0] }}</div>
+      <h2 class="px-8 py-2">
+        <div class="heading-title font-bold">
+          {{ g.heading }} <span class="group-points">({{ g.selectedPoints }})</span>
+        </div>
+      </h2>
+    </div>
+    <ul class="challenge-list px-4 py-2" [id]="'panel-' + i" [attr.aria-hidden]="!isOpen(i)" [class.collapsed]="!isOpen(i)">
+      <li *ngFor="let ch of g.challenges" class="challenge-item">
+        <span class="challenge-title">{{ ch.title }}</span>
+        <span class="challenge-points"> - {{ ch.points }} pts</span>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<nav class="top-nav flex flex-wrap justify-center lg:px-8 max-w-7xl mx-auto *:px-4 *:py-2 *:my-2">
+  <a routerLink="/home">Home <ng-icon name="faSolidHouse"></ng-icon></a>
+  <a routerLink="/info">Information <ng-icon name="faSolidBook"></ng-icon></a>
+  <a routerLink="/achievements">Achievements <ng-icon name="faSolidPencil"></ng-icon></a>
+  <a routerLink="/leaderboard">Leaderboard <ng-icon name="faSolidStar"></ng-icon></a>
+  <a class="logout-btn" (click)="logout()" [hidden]="!isLoggedIn()">Logout <ng-icon name="faSolidArrowUpFromBracket"></ng-icon></a>
+</nav>
